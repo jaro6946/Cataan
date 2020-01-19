@@ -1,5 +1,5 @@
 
-"""Need to work on putting images on specific nodes"""
+"""Need to make function to track mouse and return hex location and node location"""
 
 
 import math
@@ -13,10 +13,20 @@ winX=800
 winY=800
 win = GraphWin('Game Board', winX, winY)
 
+def drwNodes(nodeDict, window):
+    for count, node in enumerate(nodeDict):
+        point=nodeDict[count+1].nodeCoordinate
+        text=str(nodeDict[count+1].nodeID)
+
+        writing=Text(Point(point[0],point[1]), text)
+        writing.setSize(15)
+        writing.setTextColor("black")
+
+        writing.draw(window)
+
 def drwHex (points, hexID, centerPoint, tileType, pip,window):
-        print(centerPoint)
-        abc="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        writing=Text(Point(centerPoint[0],centerPoint[1]), abc[hexID-1]+" "+str(pip))
+        
+        writing=Text(Point(centerPoint[0],centerPoint[1]), hexID+" "+str(pip))
         writing.setSize(15)
         writing.setTextColor("white")
 
@@ -44,22 +54,24 @@ def drwHex (points, hexID, centerPoint, tileType, pip,window):
 
  
 class node(object):
-    nodePositions=[[None],[None]] ;"[[nodeID1, nodeID2, etc],[coordinate1, coordinate2, etc]]"
+    nodePositions=[[],[]] ;"[[nodeID1, nodeID2, etc],[coordinate1, coordinate2, etc]]"
     nodeAmmount=0
 
     def __init__(self, hexAdjoining, nodeCoordinate):
-        
+        self.dupicate=False
         self.nodeCoordinate=nodeCoordinate
         self.nodeID=node.nodeAmmount+1
         self.hexesAdjoining=[hexAdjoining]
+        
         "print( self.nodeCoordinate)"
 
+        """Checking for duplicates"""
         if node.nodePositions[1].count(nodeCoordinate)>0: 
-            """or node.nodePositions[1][1].count(nodeCoordinate)==1:"""
+            self.dupicate=True
             i=node.nodePositions[1].index(nodeCoordinate)
             self.nodeID2Change=node.nodePositions[0][i]
             hexagon.nodeDict[self.nodeID2Change].hexesAdjoining+=[hexAdjoining]
-            self.nodeID=str(self.nodeID2Change)+"duplicate"
+            self.nodeID=str(self.nodeID2Change)+"D" """D for dupicate"""
             node.nodePositions[0]+=[self.nodeID]
             """print(self.nodeID)
             print("\n")"""
@@ -67,7 +79,7 @@ class node(object):
 
             return
 
-        "print(self.nodeID)"
+        "If it is not a duplicate, add to list"
         
         
         node.nodePositions[0]+=[node.nodeAmmount+1]
@@ -124,7 +136,14 @@ class hexagon(object):
         for vertex in self.instanceVertexLocations:
             hexagon.vertexesGroupedByHexagon[0].append([self.hexID])
             hexagon.vertexesGroupedByHexagon[1].append([vertex])
-            hexagon.nodeDict[node.nodeAmmount]=node(self.hexID, vertex)
+            hexagon.nodeDict[len(hexagon.nodeDict)+1]=node(self.hexID, vertex)
+            """delete duplicate entries"""
+            if hexagon.nodeDict[len(hexagon.nodeDict)].dupicate is True:
+                del hexagon.nodeDict[len(hexagon.nodeDict)]
+
+            
+
+
         
 
 
@@ -227,13 +246,13 @@ class board(hexagon):
         self.hexLocations=[]
         [self.tileColorList, self.pipList]=tileColorAndPips()
 
+        abc="ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
         for i in range(self.rows):
             
-            print(i, self.column, self.xDir,self.yDir)
             for p in range(self.column):
                 self.startPoint=self.neighborCenter(self.startPoint, self.xDir,self.yDir)
                 self.hexLocations+=[self.startPoint]
-                print(self.startPoint,self.xDir, self.yDir)
                 self.yDir=0
                 self.xDir=1
 
@@ -250,7 +269,9 @@ class board(hexagon):
             print("\n"*2)
         for i,j in enumerate(self.hexLocations):
             
-            board.centerLocationDict[i+1]=hexagon(i+1,j,self.tileColorList[i], self.pipList[i])
+            board.centerLocationDict[i+1]=hexagon(abc[i],j,self.tileColorList[i], self.pipList[i])
+
+        drwNodes(hexagon.nodeDict,win)
 
 '''def updateBoardImage
     a=hexagon(1, [50,50])
@@ -270,7 +291,10 @@ class board(hexagon):
 print("\n"*12)
 a=board()
 a.makeBoard()
-time.sleep(10)
+for i in hexagon.nodeDict:
+    print(hexagon.nodeDict[i].hexesAdjoining)
+
+time.sleep(60)
 
     
     
